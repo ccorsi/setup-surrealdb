@@ -1,24 +1,39 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: 'Setup SurrealDB'
+description: 'This action will setup a SurrealDB installation and add it to your path.'
+author: 'Claudio Corsi'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: database
+  color: black
 
 # Define your inputs here.
 inputs:
-  milliseconds:
+  version:
+    description: The version number to install formatted as vx.y.z, default latest
+    required: false
+    default: latest
+  retry-count:
+    description: The number of times that it will try to retry downloading the requested SurrealDB version, default 3
+    required: false
+    default: '3'
+  milliseconds: # To be removed from the distribution
     description: Your input description here
     required: true
     default: '1000'
 
 # Define your outputs here.
 outputs:
-  time:
+  surrealdb-path:
+    description: This is the directory of the requested SurrealDB version
+  surrealdb-version:
+    description: This is the version of the SurrealDB installed
+  cache-hit:
+    description: Set to true if the SurrealDB version requested is from a local cache or not
+  time: # To be removed from the distribution
     description: Your output description here
 
 runs:
   using: node20
   main: dist/index.js
+  # post: dist/cleanup.js - does a cleanup script need to be included as part of the setup mechanism?

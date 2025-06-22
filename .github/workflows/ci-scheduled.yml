@@ -1,0 +1,50 @@
+name: "Setup SurrealDB Scheduled Tests"
+on:
+    schedule:
+        - cron: '0 2 1,15 * *' # trigger rate limit test every 1st and 15th day of the month at 2am
+
+jobs:
+    # run scheduled setup surrealdb tests
+    scheduled-unit-tests:
+        name: Setup SurrealDB Scheduled Tests
+        needs: scheduled-test-latest # wait until the scheduled-test-latest test completed before executing the following tests
+
+        strategy:
+            matrix:
+                runs-on: [ ubuntu-latest, windows-latest, macos-latest ]
+            fail-fast: false
+
+        runs-on: ${{ matrix.runs-on }}
+
+        steps:
+            - uses: actions/checkout@v4
+            - run: npm ci
+            - run: npm run test-scheduled
+
+    # test that the setup surrealdb action works with latest version of SurrealDB database
+    scheduled-test-latest:
+        name: Setup Latest SurrealDB Version Test
+
+        strategy:
+            matrix:
+                runs-on: [ ubuntu-latest, windows-latest, macos-latest ]
+            fail-fast: false
+
+        runs-on: ${{ matrix.runs-on }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 20.x
+                cache: 'npm'
+            - run: npm ci
+            - run: npm run prepare
+            - name: Setup Latest SurrealDB Version Test
+              id: test-setup-surrealdb-action
+              uses: ./
+              # execute the surrealdb command that displays the version of the current surrealdb installation
+            - run: surrealdb --version
+
+            - name: Print Output
+              id: output
+              run: echo "${{ steps.test-setup-surrealdb-action.outputs.surrealdb-version }}"

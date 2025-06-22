@@ -1,20 +1,22 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
+  "name": "setup-surrealdb",
+  "description": "Surrealdb Setup Action",
+  "version": "0.0.1",
   "author": "",
   "type": "module",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/actions/setup-surrealdb",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/actions/setup-surrealdb.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/actions/setup-surrealdb/issues"
   },
   "keywords": [
-    "actions"
+    "actions",
+    "surrealdb",
+    "setup"
   ],
   "exports": {
     ".": "./dist/index.js"
@@ -24,7 +26,8 @@
   },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
-    "ci-test": "NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest",
+    "ci-test": "cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest --testPathIgnorePatterns scheduled",
+    "ci-scheduled-test": "cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest --testNamePattern scheduled",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
@@ -32,12 +35,16 @@
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package": "npx rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
     "package:watch": "npm run package -- --watch",
-    "test": "NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest --testPathIgnorePatterns scheduled",
+    "test-scheduled": "cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest --testNamePattern scheduled",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1"
+    "@actions/core": "^1.11.1",
+    "@actions/http-client": "^2.2.3",
+    "@actions/tool-cache": "^2.0.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.9",
@@ -53,6 +60,7 @@
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-import-resolver-typescript": "^4.3.5",
+    "cross-env": "^7.0.3",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^28.11.0",
     "eslint-plugin-prettier": "^5.4.0",
