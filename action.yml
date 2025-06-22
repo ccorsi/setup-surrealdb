@@ -1,5 +1,6 @@
 name: 'Setup SurrealDB'
-description: 'This action will setup a SurrealDB installation and add it to your path.'
+description:
+  'This action will setup a SurrealDB installation and add it to your path.'
 author: 'Claudio Corsi'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
@@ -10,11 +11,14 @@ branding:
 # Define your inputs here.
 inputs:
   version:
-    description: The version number to install formatted as vx.y.z, default latest
+    description:
+      The version number to install formatted as vx.y.z, default latest
     required: false
     default: latest
   retry-count:
-    description: The number of times that it will try to retry downloading the requested SurrealDB version, default 3
+    description:
+      The number of times that it will try to retry downloading the requested
+      SurrealDB version, default 3
     required: false
     default: '3'
   milliseconds: # To be removed from the distribution
@@ -29,7 +33,9 @@ outputs:
   surrealdb-version:
     description: This is the version of the SurrealDB installed
   cache-hit:
-    description: Set to true if the SurrealDB version requested is from a local cache or not
+    description:
+      Set to true if the SurrealDB version requested is from a local cache or
+      not
   time: # To be removed from the distribution
     description: Your output description here
 

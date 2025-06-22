@@ -17,28 +17,26 @@ function create_string(name: string): string {
 }
 
 // Define the constant attributes of this action
-const PATH: string   = create_string('path')
+const PATH: string = create_string('path')
 const VERSION: string = create_string('version')
 const CACHE_HIT: string = 'cache-hit'
 const RETRY_COUNT: string = 'retry-count'
 const INPUT_VERSION: string = 'version'
 
-export {
-  VERSION, PATH, CACHE_HIT, RETRY_COUNT, INPUT_VERSION
-}
+export { VERSION, PATH, CACHE_HIT, RETRY_COUNT, INPUT_VERSION }
 
 // The following two interfaces were required to be able to gather the required information from
 // the http get call.  The get call returned JSON data contains information that is stored using
 // the following two interfaces.  While these interfaces would not be required within a pure
 // JavaScript file.  They are required when developing with TypeScript.
 interface Asset {
-  name: string;
-  browser_download_url: string;
+  name: string
+  browser_download_url: string
 }
 
 interface TagObject {
-  tag_name: string;
-  assets: Array<Asset>;
+  tag_name: string
+  assets: Array<Asset>
 }
 
 /**
@@ -87,18 +85,23 @@ export async function setup_surrealdb(): Promise<void> {
     }
 
     // determine which system we are currently executing this action from
-    const [ os, os_type ] = get_platform_info()
+    const [os, os_type] = get_platform_info()
 
     core.debug(`Installing SurrealDB for ${os} of type ${os_type}`)
 
-    var download: string = '', target: string = ''
+    var download: string = '',
+      target: string = ''
 
     // loop through the assets and determine which asset to download
-    for (var idx: number = 0 ; idx < jsonTag.assets.length ; idx++) {
-      const asset: Asset = jsonTag["assets"][idx]
+    for (var idx: number = 0; idx < jsonTag.assets.length; idx++) {
+      const asset: Asset = jsonTag['assets'][idx]
       if (asset.name.includes(os) && asset.name.includes(os_type)) {
         download = asset.browser_download_url
-        target = join(String(process.env['RUNNER_TEMP']), randomUUID(), asset.name)
+        target = join(
+          String(process.env['RUNNER_TEMP']),
+          randomUUID(),
+          asset.name
+        )
         // break out of the for loop
         break
       }
@@ -106,7 +109,9 @@ export async function setup_surrealdb(): Promise<void> {
 
     // determine if we found the requesting SurrealDB version
     if (download.length == 0) {
-      throw new Error(`Unable to determine the download url for SurrealDB version: ${version}`)
+      throw new Error(
+        `Unable to determine the download url for SurrealDB version: ${version}`
+      )
     }
 
     // Download the targeted SurrealDB version
@@ -123,9 +128,12 @@ export async function setup_surrealdb(): Promise<void> {
     } else {
       // The downloaded file is the executable itself thus rename the target and cache
       // the executable
-      surrealdbExtractedFolder = targetName.substring(0, targetName.lastIndexOf(sep))
+      surrealdbExtractedFolder = targetName.substring(
+        0,
+        targetName.lastIndexOf(sep)
+      )
       // rename the downloaded executable 'surrealdb.exe'
-      await rename(targetName, join(surrealdbExtractedFolder, "surrealdb.exe"))
+      await rename(targetName, join(surrealdbExtractedFolder, 'surrealdb.exe'))
     }
 
     // This will be set to the directory that the required SurrealDB version was installed
@@ -149,7 +157,6 @@ export async function setup_surrealdb(): Promise<void> {
       core.setFailed(String(error))
     }
   }
-
 }
 
 /**
@@ -160,10 +167,13 @@ export async function setup_surrealdb(): Promise<void> {
  * @param cache_hit If we are using a cache version or not
  */
 function set_output(version: string, cachePath: string, cache_hit: boolean) {
+  // prettier-ignore
   // set the surrealdb version that is being used since 'latest' is a valid input
   core.setOutput(VERSION,   version)
+  // prettier-ignore
   // set the surrealdb path output for other workflow steps to use
   core.setOutput(PATH,      cachePath)
+  // prettier-ignore
   // state if this version of the surrealdb was retrieved from the local cache
   core.setOutput(CACHE_HIT, cache_hit)
 }
@@ -183,7 +193,7 @@ function format_version_url(version: string): string {
   } else {
     // Insure that the requested version starts with the 'v' character
     // This requested version has to contain a valid tag name
-    if ( ! version.startsWith('v') ) {
+    if (!version.startsWith('v')) {
       throw new Error(`Invalid SurrealDB version format: "${version}"`)
     } // if ( ! version.startsWith('v') )
 
@@ -200,7 +210,10 @@ function format_version_url(version: string): string {
  * @param uri The URI use with the passed HttpClient instance
  * @returns The returned Promise<HttpClientResponse> from the HttpClient instance
  */
-async function executeClientGetCall(client: hc.HttpClient, uri: string): Promise<hc.HttpClientResponse> {
+async function executeClientGetCall(
+  client: hc.HttpClient,
+  uri: string
+): Promise<hc.HttpClientResponse> {
   var res: hc.HttpClientResponse
   var retryCount: number = 0
   const max_retry_count: number = set_max_retry_count()
@@ -209,75 +222,85 @@ async function executeClientGetCall(client: hc.HttpClient, uri: string): Promise
   core.setOutput(RETRY_COUNT, max_retry_count)
 
   do {
-        try {
-            // Execute the get call using the passed uri
-            res = await client.get(uri)
-            // Check if the return status code is OK (200)
-            if (res.message?.statusCode == hc.HttpCodes.OK) {
-                // The get call was sucessful thus return
-                return res
-            }
-        } catch (cause: any) {
-            // This will generate an exception
-            const message = `The client request: ${uri} generated the error: ${cause.stack}`
-            // core.error(message) <- this is not required since setFailed will display the same message
-            throw new Error(message, { cause })
-        }
+    try {
+      // Execute the get call using the passed uri
+      res = await client.get(uri)
+      // Check if the return status code is OK (200)
+      if (res.message?.statusCode == hc.HttpCodes.OK) {
+        // The get call was sucessful thus return
+        return res
+      }
+    } catch (cause: any) {
+      // This will generate an exception
+      const message = `The client request: ${uri} generated the error: ${cause.stack}`
+      // core.error(message) <- this is not required since setFailed will display the same message
+      throw new Error(message, { cause })
+    }
 
-        if (retryCount == max_retry_count) {
-            // eat the rest of the input information so that no memory leak will be generated
-            res.message.resume()
+    if (retryCount == max_retry_count) {
+      // eat the rest of the input information so that no memory leak will be generated
+      res.message.resume()
 
-            // We've exhausted the retry count
-            const message = `The retry count was exhausted for client request: ${uri}`
-            // core.warning(message) <- this is not required since setFailed will display the same message in error
-            throw new Error(message)
-        } else if (res.message.statusCode === hc.HttpCodes.Forbidden && res.message.headers['retry-after']) {
-            // eat the rest of the input information so that no memory leak will be generated
-            res.message.resume()
+      // We've exhausted the retry count
+      const message = `The retry count was exhausted for client request: ${uri}`
+      // core.warning(message) <- this is not required since setFailed will display the same message in error
+      throw new Error(message)
+    }
 
-            // Get the minimum amount of seconds that one should wait before trying again.
-            const secondsToWait = Number(res.message.headers['retry-after'])
+    // prettier-ignore
+    if (res.message.statusCode === hc.HttpCodes.Forbidden && res.message.headers['retry-after']) {
+      // eat the rest of the input information so that no memory leak will be generated
+      res.message.resume()
 
-            core.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`);
+      // Get the minimum amount of seconds that one should wait before trying again.
+      const secondsToWait = Number(res.message.headers['retry-after'])
 
-            // retry the command after the amount of second within the header retry-after attribute
-            await sleep(secondsToWait)
+      // prettier-ignore
+      core.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`)
 
-            // increment the retryCount
-            retryCount += 1
+      // retry the command after the amount of second within the header retry-after attribute
+      await sleep(secondsToWait)
 
-        } else if (res.message.statusCode === hc.HttpCodes.Forbidden && res.message.headers['x-ratelimit-remaining'] === '0') {
-            // eat the rest of the input information so that no memory leak will be generated
-            res.message.resume()
+      // increment the retryCount
+      retryCount += 1
 
-             // Get the ratelimit reset date in utc epoch seconds
-            const resetTimeEpochSeconds: number = Number(res.message.headers['x-ratelimit-reset']);
+      continue
+    }
 
-            // Get the current utc time in epoch seconds
-            const currentTimeEpochSeconds: number = Math.floor(Date.now() / 1000);
+    // prettier-ignore
+    if (res.message.statusCode === hc.HttpCodes.Forbidden && res.message.headers['x-ratelimit-remaining'] === '0') {
+      // eat the rest of the input information so that no memory leak will be generated
+      res.message.resume()
 
-            // Determine the minimum amount of seconds that one should wait before trying again.
-            const secondsToWait = resetTimeEpochSeconds - currentTimeEpochSeconds;
+      // prettier-ignore
+      // Get the ratelimit reset date in utc epoch seconds
+      const resetTimeEpochSeconds: number = Number(res.message.headers['x-ratelimit-reset'])
 
-            core.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`);
+      // Get the current utc time in epoch seconds
+      const currentTimeEpochSeconds: number = Math.floor(Date.now() / 1000)
 
-            // retry the command after the amount of second within the header retry-after attribute
-            await sleep(secondsToWait)
+      // Determine the minimum amount of seconds that one should wait before trying again.
+      const secondsToWait = resetTimeEpochSeconds - currentTimeEpochSeconds
 
-            // increment the retryCount
-            retryCount += 1
+      // prettier-ignore
+      core.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`)
 
-        } else {
-            // eat the rest of the input information so that no memory leak will be generated
-            res.message.resume()
+      // retry the command after the amount of second within the header retry-after attribute
+      await sleep(secondsToWait)
 
-            // We've received a status code that we don't know how to process
-            const message = `The client request: ${uri} returned an unknown status code: ${res.message.statusCode} with message: ${res.message.statusMessage}`
-            // core.warning(message) <- this is not required since setFailed will display the same message in error
-            throw new Error(message)
-        }
+      // increment the retryCount
+      retryCount += 1
 
+      continue
+    }
+
+    // eat the rest of the input information so that no memory leak will be generated
+    res.message.resume()
+
+    // We've received a status code that we don't know how to process
+    const message = `The client request: ${uri} returned an unknown status code: ${res.message.statusCode} with message: ${res.message.statusMessage}`
+    // core.warning(message) <- this is not required since setFailed will display the same message in error
+    throw new Error(message)
   } while (true)
 }
 
@@ -290,7 +313,7 @@ async function executeClientGetCall(client: hc.HttpClient, uri: string): Promise
  * @return {Promise<void>}  A Promise instance that doesn't return any value
  */
 function sleep(seconds: number) {
-   return new Promise(resolve => setTimeout(resolve, seconds * 1000))
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000))
 }
 
 /**
@@ -300,10 +323,10 @@ function sleep(seconds: number) {
  * @returns Array of string with os type and os archetecture
  */
 function get_platform_info(): string[] {
-  let result: string[] = [ "", "" ]
+  let result: string[] = ['', '']
 
   // Determine the operating system we are running
-  switch(process.platform) {
+  switch (process.platform) {
     case 'win32':
       result[0] = 'windows'
       break
@@ -318,7 +341,7 @@ function get_platform_info(): string[] {
   }
 
   // Determine the operating system archetecture
-  switch(process.arch) {
+  switch (process.arch) {
     case 'arm64':
       result[1] = 'arm64'
       break
@@ -326,7 +349,7 @@ function get_platform_info(): string[] {
       result[1] = 'amd64'
       break
     default:
-      throw new Error("Unable to determine the system archetecture")
+      throw new Error('Unable to determine the system archetecture')
   }
 
   return result
@@ -342,7 +365,7 @@ export const default_retry_count: number = 3
  * @returns the retry count for downloading the surrealdb installation
  */
 function set_max_retry_count(): number {
-  let input:string = core.getInput(RETRY_COUNT)
+  let input: string = core.getInput(RETRY_COUNT)
 
   let v: Number = Number(input)
   if (Number.isInteger(v)) {
@@ -352,12 +375,13 @@ function set_max_retry_count(): number {
       // return the passed input value for the surrealdb retry count
       return v.valueOf()
     } else {
+      // prettier-ignore
       core.warning(`An invalid ${RETRY_COUNT} was passed, the value has to be greater than 0, dafaulting to ${default_retry_count}`)
     }
   } else if (input?.length > 0) {
+    // prettier-ignore
     core.warning(`An invalid ${RETRY_COUNT} was passed, defaulting to ${default_retry_count}`)
   }
 
   return default_retry_count
 }
-
