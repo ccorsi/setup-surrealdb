@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: '0 2 1,15 * *' # trigger rate limit test every 1st and 15th day of the month at 2am
 
+permissions:
+  contents: read
+
 jobs:
   # run scheduled setup surrealdb tests
   scheduled-unit-tests:
