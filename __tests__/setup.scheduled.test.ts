@@ -45,7 +45,7 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
     const version: string = 'latest'
 
     // create the required GITHUB_OUTPUT file used to check that the required output were generated
-    var filePath: string
+    let filePath: string
 
     beforeEach((): void => {
       // create the required GITHUB_OUTPUT file
@@ -67,7 +67,7 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
     const version: string = 'v2.3.2'
 
     // create the required GITHUB_OUTPUT file used to check that the required output were generated
-    var filePath: string
+    let filePath: string
 
     // use a timeout variable to if the rate limit was reached during the setup of the test
     let timeout: number = -1
@@ -85,12 +85,12 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
       // Create a client connection
       const client = new hc.HttpClient(`github-surrealdb-${version}-version-tag`)
 
-      let start: number = Date.now()
+      const start: number = Date.now()
 
       // Loop through a simple GitHub REST API call until it reaches a rate limit
       while (true) {
         // retrieve a list of tags
-        let res: hc.HttpClientResponse = await client.get(tag)
+        const res: hc.HttpClientResponse = await client.get(tag)
 
         // eat the rest of the input information so that no memory leak will be generated
         res.message.resume()
@@ -134,9 +134,6 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
 
       core.info(`Checking that the timeout value was update`)
 
-      // should I determine that the timeout was updated?
-      expect(timeout != -1)
-
       // prettier-ignore
       core.info(`Forced a rate limit condition after ${(Date.now() - start) / 1000} seconds`)
     }, 60000)
@@ -147,6 +144,12 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
     })
 
     test('rate limit test', async (): Promise<void> => {
+      // should I determine that the timeout was updated?
+      // Also moved this code to the test block since the lint tool complained that this check should be done
+      // here instead of the beforeEach callback which doesn't make sense since the test depends on it needing
+      // to wait for a certain time before continuing.
+      expect(timeout).not.toBe(-1)
+
       await executeTest(version, filePath)
     })
   })

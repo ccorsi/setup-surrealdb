@@ -99,7 +99,7 @@ export function delete_github_output(name: string): void {
 export async function read_github_output(
   name: string
 ): Promise<Map<string, string>> {
-  var result: Map<string, string> = new Map<string, string>()
+  const result: Map<string, string> = new Map<string, string>()
   // determine that the file exists
   if (existsSync(name)) {
     const fileStream = createReadStream(name)
@@ -109,7 +109,7 @@ export async function read_github_output(
       crlfDelay: Infinity
     })
 
-    var key: string = '',
+    let key: string = '',
       delimiter = ''
 
     // core.info('######## Reading properties from the github_output')
@@ -121,7 +121,7 @@ export async function read_github_output(
           continue
         }
         // core.info(`before ${key} : '${result.get(key) || ''}'`)
-        var prior: string = result.get(key) || ''
+        let prior: string = result.get(key) || ''
         prior = prior + (prior.length > 0 ? '\n' : '')
         // add a newline character and append the line to the current key
         result.set(key, prior + line)

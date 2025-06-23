@@ -32,7 +32,7 @@ describe('SurrealDB Retry Count Tests', (): void => {
   const version: string = 'v2.3.3'
 
   // create the required GITHUB_OUTPUT file used to check that the required output were generated
-  var filePath: string
+  let filePath: string
 
   beforeEach((): void => {
     // create the required GITHUB_OUTPUT file

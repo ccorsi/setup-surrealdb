@@ -61,7 +61,7 @@ export async function setup_surrealdb(): Promise<void> {
     const res: hc.HttpClientResponse = await executeClientGetCall(client, url)
 
     // get the returned body
-    let body: string = await res.readBody()
+    const body: string = await res.readBody()
 
     // convert body into a json object
     const jsonTag: TagObject = JSON.parse(body)
@@ -73,7 +73,7 @@ export async function setup_surrealdb(): Promise<void> {
     const version: string = jsonTag.tag_name
 
     // determine if the given surrealdb version was already downloaded
-    var cachePath: string = find('surrealdb', version)
+    let cachePath: string = find('surrealdb', version)
 
     if (cachePath.length > 0) {
       core.info(`Using cached SurrealDB version ${version}`)
@@ -89,11 +89,11 @@ export async function setup_surrealdb(): Promise<void> {
 
     core.debug(`Installing SurrealDB for ${os} of type ${os_type}`)
 
-    var download: string = '',
+    let download: string = '',
       target: string = ''
 
     // loop through the assets and determine which asset to download
-    for (var idx: number = 0; idx < jsonTag.assets.length; idx++) {
+    for (let idx: number = 0; idx < jsonTag.assets.length; idx++) {
       const asset: Asset = jsonTag['assets'][idx]
       if (asset.name.includes(os) && asset.name.includes(os_type)) {
         download = asset.browser_download_url
@@ -117,7 +117,7 @@ export async function setup_surrealdb(): Promise<void> {
     // Download the targeted SurrealDB version
     const targetName: string = await downloadTool(download, target)
 
-    var surrealdbExtractedFolder: string
+    let surrealdbExtractedFolder: string
 
     if (process.platform != 'win32') {
       core.debug(`Extracting target: ${targetName}`)
@@ -214,12 +214,16 @@ async function executeClientGetCall(
   client: hc.HttpClient,
   uri: string
 ): Promise<hc.HttpClientResponse> {
-  var res: hc.HttpClientResponse
-  var retryCount: number = 0
+  let res: hc.HttpClientResponse
+  let retryCount: number = 0
   const max_retry_count: number = set_max_retry_count()
 
   // this is for testing purposes only but won't be documented since the user doesn't need this output information
   core.setOutput(RETRY_COUNT, max_retry_count)
+
+  let status: boolean = true,
+    statusCode: number = -1,
+    statusMessage: string = 'unknown'
 
   do {
     try {
@@ -230,9 +234,14 @@ async function executeClientGetCall(
         // The get call was sucessful thus return
         return res
       }
-    } catch (cause: any) {
-      // This will generate an exception
-      const message = `The client request: ${uri} generated the error: ${cause.stack}`
+    } catch (cause: unknown) {
+      let message: string = ''
+      if (cause instanceof Error) {
+        // This will generate an exception
+        message = `The client request: ${uri} generated the error: ${cause.stack}`
+      } else {
+        message = `The client request: ${uri} generated the an unknown error: ${cause}`
+      }
       // core.error(message) <- this is not required since setFailed will display the same message
       throw new Error(message, { cause })
     }
@@ -297,11 +306,18 @@ async function executeClientGetCall(
     // eat the rest of the input information so that no memory leak will be generated
     res.message.resume()
 
-    // We've received a status code that we don't know how to process
-    const message = `The client request: ${uri} returned an unknown status code: ${res.message.statusCode} with message: ${res.message.statusMessage}`
-    // core.warning(message) <- this is not required since setFailed will display the same message in error
-    throw new Error(message)
-  } while (true)
+    // we are done so let us exit the while loop
+    status = false
+
+    statusCode = res.message?.statusCode || -1
+
+    statusMessage = res.message?.statusMessage || 'unknown'
+  } while (status)
+
+  // We've received a status code that we don't know how to process
+  const message = `The client request: ${uri} returned an unknown status code: ${statusCode} with message: ${statusMessage}`
+  // core.warning(message) <- this is not required since setFailed will display the same message in error
+  throw new Error(message)
 }
 
 /*
@@ -323,7 +339,7 @@ function sleep(seconds: number) {
  * @returns Array of string with os type and os archetecture
  */
 function get_platform_info(): string[] {
-  let result: string[] = ['', '']
+  const result: string[] = ['', '']
 
   // Determine the operating system we are running
   switch (process.platform) {
@@ -365,9 +381,9 @@ export const default_retry_count: number = 3
  * @returns the retry count for downloading the surrealdb installation
  */
 function set_max_retry_count(): number {
-  let input: string = core.getInput(RETRY_COUNT)
+  const input: string = core.getInput(RETRY_COUNT)
 
-  let v: Number = Number(input)
+  const v: number = Number(input)
   if (Number.isInteger(v)) {
     const value: number = v.valueOf()
     if (value > 0) {

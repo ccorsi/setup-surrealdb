@@ -39,7 +39,7 @@ const versions: string[] = ['v2.3.0', 'latest']
 versions.forEach((version: string): void => {
   describe(`setup surrealdb for version: ${version}`, (): void => {
     // create the required GITHUB_OUTPUT file used to check that the required output were generated
-    var filePath: string
+    let filePath: string
 
     beforeEach((): void => {
       // create the required GITHUB_OUTPUT file
@@ -87,7 +87,7 @@ versions.forEach((version: string): void => {
 
 describe('setup surrealdb invalid version tests', (): void => {
   // create the required GITHUB_OUTPUT file used to check that the required output were generated
-  var filePath: string
+  let filePath: string
 
   afterEach((): void => {
     // delete the generated GITHUB_OUTFILE file
@@ -121,7 +121,7 @@ describe('setup surrealdb retry count tests', (): void => {
   const version: string = 'latest'
 
   // create the required GITHUB_OUTPUT file used to check that the required output were generated
-  var filePath: string
+  let filePath: string
 
   beforeEach((): void => {
     // create the required GITHUB_OUTPUT file
