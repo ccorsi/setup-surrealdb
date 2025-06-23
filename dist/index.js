@@ -29820,6 +29820,21 @@ function requireToolCache () {
 var toolCacheExports = requireToolCache();
 
 /**
+ * This setup script is used to setup the requested SurrealDB version such that it can then
+ * be used within your workflow.  It will provide access to the requested version by including
+ * it to the system path.
+ */
+const prefix = 'surrealdb';
+function create_string(name) {
+    return `${prefix}-${name}`;
+}
+// Define the constant attributes of this action
+const PATH = create_string('path');
+const VERSION = create_string('version');
+const CACHE_HIT = 'cache-hit';
+const RETRY_COUNT = 'retry-count';
+const INPUT_VERSION = 'version';
+/**
  * This method will install the requested SurrealDB version.  It will
  * then setup the required output values upon successfully downloading,
  * installing and configuring the SurrealDB database.
@@ -29831,25 +29846,36 @@ async function setup_surrealdb() {
         // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
         coreExports.info(`Installing SurrealDB...`);
         // Generate the required url to access information about a specific SurrealDB release
-        const url = format_version_url(coreExports.getInput('version'));
+        const url = format_version_url(coreExports.getInput(INPUT_VERSION));
         // Create a client connection
         const client = new libExports.HttpClient(`github-surrealdb-release`);
         // execute the url call using the http client instance
         const res = await executeClientGetCall(client, url);
         // get the returned body
-        let body = await res.readBody();
+        const body = await res.readBody();
         // convert body into a json object
         const jsonTag = JSON.parse(body);
-        coreExports.info(String(jsonTag));
+        // convert the jsonTag into a string value
+        coreExports.debug(`processing version tag: ${jsonTag?.tag_name}`);
         // extract the version information from the retreived tag information
         const version = jsonTag.tag_name;
+        // determine if the given surrealdb version was already downloaded
+        let cachePath = toolCacheExports.find('surrealdb', version);
+        if (cachePath.length > 0) {
+            coreExports.info(`Using cached SurrealDB version ${version}`);
+            // Add the cached path to the system path to be able to run the surrealdb command
+            coreExports.addPath(cachePath);
+            // Set outputs for other workflow steps to use
+            set_output(version, cachePath, true);
+            return; // no need to do anything else
+        }
         // determine which system we are currently executing this action from
         const [os, os_type] = get_platform_info();
-        coreExports.info(`${os} ${os_type}`);
-        var download = '', target = '';
+        coreExports.debug(`Installing SurrealDB for ${os} of type ${os_type}`);
+        let download = '', target = '';
         // loop through the assets and determine which asset to download
-        for (var idx = 0; idx < jsonTag.assets.length; idx++) {
-            const asset = jsonTag["assets"][idx];
+        for (let idx = 0; idx < jsonTag.assets.length; idx++) {
+            const asset = jsonTag['assets'][idx];
             if (asset.name.includes(os) && asset.name.includes(os_type)) {
                 download = asset.browser_download_url;
                 target = join(String(process.env['RUNNER_TEMP']), randomUUID(), asset.name);
@@ -29863,12 +29889,12 @@ async function setup_surrealdb() {
         }
         // Download the targeted SurrealDB version
         const targetName = await toolCacheExports.downloadTool(download, target);
-        var surrealdbExtractedFolder;
+        let surrealdbExtractedFolder;
         if (process.platform != 'win32') {
             coreExports.debug(`Extracting target: ${targetName}`);
             // Extract the surrealdb command from the gzipped tarred distribution
             surrealdbExtractedFolder = await toolCacheExports.extractTar(targetName);
-            // delete the download archive
+            // delete the download archive since it isn't required any longer
             await rm(targetName);
         }
         else {
@@ -29876,32 +29902,53 @@ async function setup_surrealdb() {
             // the executable
             surrealdbExtractedFolder = targetName.substring(0, targetName.lastIndexOf(sep));
             // rename the downloaded executable 'surrealdb.exe'
-            await rename(targetName, join(surrealdbExtractedFolder, "surrealdb.exe"));
+            await rename(targetName, join(surrealdbExtractedFolder, 'surrealdb.exe'));
         }
-        // This will be set to the directory that the required SurrealDB version was installed 
-        var cachePath = await toolCacheExports.cacheDir(surrealdbExtractedFolder, 'surrealdb', version);
+        // This will be set to the directory that the required SurrealDB version was installed
+        cachePath = await toolCacheExports.cacheDir(surrealdbExtractedFolder, 'surrealdb', version);
         coreExports.debug(`Adding surrealdb directory "${cachePath}" to the path`);
         // Add the path to the surrealdb executable to the system path environment variable
         coreExports.addPath(cachePath);
         coreExports.debug(`Added surrealdb directory "${cachePath}" to the path`);
-        // set the surrealdb path output for other workflow steps to use
-        coreExports.setOutput('surrealdb-path', cachePath);
         // Set outputs for other workflow steps to use
-        coreExports.setOutput('version', version);
-        coreExports.info(`Successfully installed SurrealDB ${version}`);
+        set_output(version, cachePath, false);
+        coreExports.info(`Successfully installed SurrealDB version: ${version}`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
+        if (error instanceof Error) {
             coreExports.setFailed(error.message);
+        }
+        else {
+            // stringify the catch error to inform the workflow run that this action failed
+            coreExports.setFailed(String(error));
+        }
     }
+}
+/**
+ * This function will set the different output fields for this action.
+ *
+ * @param version The surrealdb version installed
+ * @param cachePath Path to the surrealdb executable
+ * @param cache_hit If we are using a cache version or not
+ */
+function set_output(version, cachePath, cache_hit) {
+    // prettier-ignore
+    // set the surrealdb version that is being used since 'latest' is a valid input
+    coreExports.setOutput(VERSION, version);
+    // prettier-ignore
+    // set the surrealdb path output for other workflow steps to use
+    coreExports.setOutput(PATH, cachePath);
+    // prettier-ignore
+    // state if this version of the surrealdb was retrieved from the local cache
+    coreExports.setOutput(CACHE_HIT, cache_hit);
 }
 /**
  * This method will check that the passed version is correctly
  * formatted.  It will throw an exception if the passed version
  * is incorrect.
  *
- * @param version Version of SurrealDB
+ * @param version Version of the SurrealDB database
  * @returns The formatted version of the SurrealDB
  */
 function format_version_url(version) {
@@ -29913,7 +29960,7 @@ function format_version_url(version) {
         // Insure that the requested version starts with the 'v' character
         // This requested version has to contain a valid tag name
         if (!version.startsWith('v')) {
-            throw new Error(`Invalid SurrealDB version format: ${version}`);
+            throw new Error(`Invalid SurrealDB version format: "${version}"`);
         } // if ( ! version.startsWith('v') )
         // Specific release information is located at the following generated link
         return `https://api.github.com/repos/surrealdb/surrealdb/releases/tags/${version}`;
@@ -29928,22 +29975,32 @@ function format_version_url(version) {
  * @returns The returned Promise<HttpClientResponse> from the HttpClient instance
  */
 async function executeClientGetCall(client, uri) {
-    var res;
-    var retryCount = 0;
+    let res;
+    let retryCount = 0;
+    const max_retry_count = set_max_retry_count();
+    // this is for testing purposes only but won't be documented since the user doesn't need this output information
+    coreExports.setOutput(RETRY_COUNT, max_retry_count);
+    let status = true, statusCode = -1, statusMessage = 'unknown';
     do {
         try {
             // Execute the get call using the passed uri
             res = await client.get(uri);
-            // Check if the 
-            if (res.message.statusCode == 200) {
+            // Check if the return status code is OK (200)
+            if (res.message?.statusCode == libExports.HttpCodes.OK) {
                 // The get call was sucessful thus return
                 return res;
             }
         }
         catch (cause) {
-            // This will generate an exception
-            const message = `The client request: ${uri} generated the error: ${cause.stack}`;
-            coreExports.error(message);
+            let message = '';
+            if (cause instanceof Error) {
+                // This will generate an exception
+                message = `The client request: ${uri} generated the error: ${cause.stack}`;
+            }
+            else {
+                message = `The client request: ${uri} generated the an unknown error: ${cause}`;
+            }
+            // core.error(message) <- this is not required since setFailed will display the same message
             throw new Error(message, { cause });
         }
         if (retryCount == max_retry_count) {
@@ -29951,44 +30008,53 @@ async function executeClientGetCall(client, uri) {
             res.message.resume();
             // We've exhausted the retry count
             const message = `The retry count was exhausted for client request: ${uri}`;
-            coreExports.warning(message);
+            // core.warning(message) <- this is not required since setFailed will display the same message in error
             throw new Error(message);
         }
-        else if (res.message.statusCode === 403 && res.message.headers['retry-after']) {
+        // prettier-ignore
+        if (res.message.statusCode === libExports.HttpCodes.Forbidden && res.message.headers['retry-after']) {
             // eat the rest of the input information so that no memory leak will be generated
             res.message.resume();
             // Get the minimum amount of seconds that one should wait before trying again.
             const secondsToWait = Number(res.message.headers['retry-after']);
+            // prettier-ignore
             coreExports.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`);
             // retry the command after the amount of second within the header retry-after attribute
             await sleep(secondsToWait);
             // increment the retryCount
             retryCount += 1;
+            continue;
         }
-        else if (res.message.statusCode === 403 && res.message.headers['x-ratelimit-remaining'] === '0') {
+        // prettier-ignore
+        if (res.message.statusCode === libExports.HttpCodes.Forbidden && res.message.headers['x-ratelimit-remaining'] === '0') {
             // eat the rest of the input information so that no memory leak will be generated
             res.message.resume();
+            // prettier-ignore
             // Get the ratelimit reset date in utc epoch seconds
             const resetTimeEpochSeconds = Number(res.message.headers['x-ratelimit-reset']);
             // Get the current utc time in epoch seconds
             const currentTimeEpochSeconds = Math.floor(Date.now() / 1000);
             // Determine the minimum amount of seconds that one should wait before trying again.
             const secondsToWait = resetTimeEpochSeconds - currentTimeEpochSeconds;
+            // prettier-ignore
             coreExports.warning(`You have exceeded your rate limit. Retrying in ${secondsToWait} seconds.`);
             // retry the command after the amount of second within the header retry-after attribute
             await sleep(secondsToWait);
             // increment the retryCount
             retryCount += 1;
+            continue;
         }
-        else {
-            // eat the rest of the input information so that no memory leak will be generated
-            res.message.resume();
-            // We've received a status code that we don't know how to process
-            const message = `The client request: ${uri} returned an unknown status code: ${res.message.statusCode} with message: ${res.message.statusMessage}`;
-            coreExports.warning(message);
-            throw new Error(message);
-        }
-    } while (true);
+        // eat the rest of the input information so that no memory leak will be generated
+        res.message.resume();
+        // we are done so let us exit the while loop
+        status = false;
+        statusCode = res.message?.statusCode || -1;
+        statusMessage = res.message?.statusMessage || 'unknown';
+    } while (status);
+    // We've received a status code that we don't know how to process
+    const message = `The client request: ${uri} returned an unknown status code: ${statusCode} with message: ${statusMessage}`;
+    // core.warning(message) <- this is not required since setFailed will display the same message in error
+    throw new Error(message);
 }
 /*
  * This method will be used whenever we need to wait a certain amount of time before continuing.
@@ -29999,7 +30065,7 @@ async function executeClientGetCall(client, uri) {
  * @return {Promise<void>}  A Promise instance that doesn't return any value
  */
 function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 /**
  * This method will return the respective operating system information required to be able to
@@ -30008,7 +30074,7 @@ function sleep(seconds) {
  * @returns Array of string with os type and os archetecture
  */
 function get_platform_info() {
-    let result = ["", ""];
+    const result = ['', ''];
     // Determine the operating system we are running
     switch (process.platform) {
         case 'win32':
@@ -30032,22 +30098,21 @@ function get_platform_info() {
             result[1] = 'amd64';
             break;
         default:
-            throw new Error("Unable to determine the system archetecture");
+            throw new Error('Unable to determine the system archetecture');
     }
     return result;
 }
 const default_retry_count = 3;
-const max_retry_count = set_max_retry_count();
 /**
  * This function will return the maximum number of retries to download the SurrealDB distribution.
- * It will use the surrealdb-retry-count input to determine if a valid value was set or return the
+ * It will use the retry-count input to determine if a valid value was set or return the
  * default retry count.
  *
  * @returns the retry count for downloading the surrealdb installation
  */
 function set_max_retry_count() {
-    let input = coreExports.getInput('surrealdb-retry-count');
-    let v = Number(input);
+    const input = coreExports.getInput(RETRY_COUNT);
+    const v = Number(input);
     if (Number.isInteger(v)) {
         const value = v.valueOf();
         if (value > 0) {
@@ -30056,11 +30121,13 @@ function set_max_retry_count() {
             return v.valueOf();
         }
         else {
-            coreExports.warning(`An invalid surrealdb-retry-count was passed, the value has to be greater than 0, dafaulting to ${default_retry_count}`);
+            // prettier-ignore
+            coreExports.warning(`An invalid ${RETRY_COUNT} was passed, the value has to be greater than 0, dafaulting to ${default_retry_count}`);
         }
     }
     else if (input?.length > 0) {
-        coreExports.warning(`An invalid surrealdb-retry-count was passed, defaulting to ${default_retry_count}`);
+        // prettier-ignore
+        coreExports.warning(`An invalid ${RETRY_COUNT} was passed, defaulting to ${default_retry_count}`);
     }
     return default_retry_count;
 }
