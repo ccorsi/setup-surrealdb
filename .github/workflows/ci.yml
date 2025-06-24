@@ -64,5 +64,4 @@ jobs:
 
       - name: Print Output
         id: output
-        run:
-          echo "${{ steps.setup-surrealdb.outputs.surrealdb-version }}"
+        run: echo "${{ steps.setup-surrealdb.outputs.surrealdb-version }}"
