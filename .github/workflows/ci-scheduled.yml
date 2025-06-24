@@ -43,7 +43,7 @@ jobs:
       - run: npm ci
       - run: npm run prepare
       - name: Setup Latest SurrealDB Version Test
-        id: test-setup-surrealdb-action
+        id: setup-surrealdb
         uses: ./
         # execute the surrealdb command that displays the version of the current surrealdb installation
       - run: surrealdb --version
@@ -52,4 +52,4 @@ jobs:
         id: output
         run:
           # prettier-ignore
-          echo "${{ steps.test-setup-surrealdb-action.outputs.surrealdb-version }}"
+          echo "${{ steps.setup-surrealdb.outputs.surrealdb-version }}"
