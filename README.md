@@ -19,22 +19,22 @@ Here is a table of the different inputs that can be used with this action
 | Name | Description | Optional | Default Value |
 | ---- | ----------- | -------- | ------------- |
 | version | version of the SurrealDB to install | true | latest |
-| retry-count | the retry count for github api calls | true | 3 |
+| retry-count | the retry count for GitHub API calls | true | 3 |
 
 Note that the input combination of the SurrealDB version would greatly shorten the installation of SurrealDB.  Thou,
 the requirement of the version is optional, an invalid version will cause the action to fail.
 The recommended inputs would be to correctly define the version of the SurrealDB installation.  This information can be
 found on the [SurrealDB releases](https://github.com/surrealdb/surrealdb/releases) page.  The above release page will
-contain the defined version tags with vX.Y.Z version format for all official releases.  While pre-releases will be
+contain the defined version tags with vX.Y.Z version format for all official releases.  While prereleases will be
 formatted differently.
 
 The addition of the retry-count optional option is only required when you are performing extensive GitHub API calls from
 multiple concurrent workflow processing.  The retry count is used to determine how many tries the setup surrealdb action
-will make github api calls before exiting the setup surrealdb action.  The github api call is used to get the version
+will make GitHub API calls before exiting the setup surrealdb action.  The GitHub API call is used to get the version
 artifact information associated to the surrealdb version being requested.  The version is necessary to be able to
 correctly format the download url for the requested version of surrealdb.  The advantage of setting the retry count becomes
 useful whenever you are going to be performing many concurrent setup surrealdb calls.  This would then cause your currently
-executing workflow to incur rate limit response from using the github api too frequently.  Retrying those calls becomes
+executing workflow to incur rate limit response from using the GitHub API too frequently.  Retrying those calls becomes
 useful but you might need to increase the retry count to something larger to insure that all setup surrealdb calls will be
 successful.
 
@@ -59,7 +59,7 @@ steps:
 
 The `version` or 'retry-count` inputs are not required.
 
-The action will first check the local cache for a semver match. If unable to find a specific version in the cache, the
+The action will first check the local cache for a SemVer match. If unable to find a specific version in the cache, the
 action will attempt to download the specified version of SurrealDB.  Note that an incorrect SurrealDB version
 will cause this action to fail.  You can find the correct version on the
 [SurrealDB releases](https://github.com/surrealdb/surrealdb/releases) page.
@@ -138,8 +138,8 @@ works as expected for their project.
 
 While the above examples don't necessarily include the version input to work.  There is
 always a chance that the setup surrealdb action will require retries because the setup will be performing
-github api calls.  These calls can incur a rate limit response which requires retries.  These response
-will contain information about how long one needs to wait before retrying the github api call.  While
+GitHub API calls.  These calls can incur a rate limit response which requires retries.  These response
+will contain information about how long one needs to wait before retrying the GitHub API call.  While
 the default retry count is set to 3.  One can always increase this value using the retry-count
 input variable like the following example.
 

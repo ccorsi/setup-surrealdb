@@ -45,10 +45,9 @@ BOLD_UNDERLINED='\033[1;4m'
 BOLD='\033[1m'
 
 function usage {
+	status=0
 	if ! test -z "$1"; then
-		status = $1
-	else
-		status = 0
+		status="$1"
 	fi
 	echo "usage: $0 -r <git_remote_id>"
 	echo "	-r <git_remote_id>, the git remote identification, default origin"
@@ -60,7 +59,7 @@ function usage {
         echo "It can determine if the required release branch was created and will also determine if"
         echo "the provided version string conforms with the expected semantic version format."
         echo ""
-	exit ${status}
+	exit "${status}"
 }
 
 check_version=false
@@ -109,7 +108,7 @@ fi
 
 if ${check_version}; then
 	# automatically check that the package.json version field was properly set
-	if grep "\"version\"" package.json | grep ${new_tag} > /dev/nul; then
+	if grep "\"version\"" package.json | grep "${new_tag}" > /dev/nul; then
 		# Package.json version field is not up to date
 		echo -e "Please update the package.json version to ${BOLD_PURPLE}$new_tag${OFF} and commit your changes"
 		exit 1
