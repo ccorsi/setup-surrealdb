@@ -54,7 +54,6 @@ function usage {
 	echo "	-v <version_tag,    use the passed version tag, using format vX.X.X"
 	echo "	-c,                 check that the version field is the same within package.json"
 	echo "	-h,                 print this message and exit"
-        echo ""
         echo "This script can be used to create the required release tags and/or the release branch."
         echo "It can determine if the required release branch was created and will also determine if"
         echo "the provided version string conforms with the expected semantic version format."
@@ -64,20 +63,28 @@ function usage {
 
 check_version=false
 
-while getopts "hc:rv" o; do
+while getopts ":hc:rv" o; do
 	case "${o}" in
-		# git remote identifier is not set to origin by default
-		r)	git_remote=${OPTARG}
-	                ;;
-		# use the passed version for this distribtion
-		v)	new_tag=${OPTARG}
-			;;
-		# check that the new tag is also assigned in the package.json file
-		c)  check_version=true
-			;;
-		# print help and exit with the passed status
-		h)	usage 0
-			;;
+	# git remote identifier is not set to origin by default
+	r)
+                git_remote=${OPTARG}
+                ;;
+	# use the passed version for this distribtion
+	v)
+                new_tag=${OPTARG}
+		;;
+	# check that the new tag is also assigned in the package.json file
+	c)
+                check_version=true
+		;;
+	# print help and exit with the passed status
+	h)
+                usage 0
+		;;
+	*)
+                echo invalid option "${OPTARG}"
+                usage 1
+                ;;
 	esac
 done
 
@@ -92,8 +99,8 @@ fi
 echo -e "The latest release tag is: ${BOLD_BLUE}${latest_tag}${OFF}"
 
 if test -z "${new_tag}"; then
-# 3. Prompt the user for a new release tag
-read -r -p 'Enter a new release tag (vX.X.X format): ' new_tag
+	# 3. Prompt the user for a new release tag
+	read -r -p 'Enter a new release tag (vX.X.X format): ' new_tag
 fi
 
 # 4. Validate the new release tag
@@ -108,7 +115,7 @@ fi
 
 if ${check_version}; then
 	# automatically check that the package.json version field was properly set
-	if grep "\"version\"" package.json | grep "${new_tag}" > /dev/nul; then
+	if grep "\"version\"" package.json | grep "${new_tag}" >/dev/nul; then
 		# Package.json version field is not up to date
 		echo -e "Please update the package.json version to ${BOLD_PURPLE}$new_tag${OFF} and commit your changes"
 		exit 1
@@ -116,9 +123,9 @@ if ${check_version}; then
 
 else
 
-# 5. Remind user to update the version field in package.json
-echo -e -n "Make sure the version field in package.json is ${BOLD_BLUE}$new_tag${OFF}. Yes? [Y/${BOLD_UNDERLINED}n${OFF}] "
-read -r YN
+	# 5. Remind user to update the version field in package.json
+	echo -e -n "Make sure the version field in package.json is ${BOLD_BLUE}$new_tag${OFF}. Yes? [Y/${BOLD_UNDERLINED}n${OFF}] "
+	read -r YN
 
 fi
 
@@ -168,7 +175,7 @@ if [ $is_major_release = 'yes' ]; then
 	echo -e "Tags: ${BOLD_GREEN}$new_major_release_tag${OFF} and ${BOLD_GREEN}$new_tag${OFF} pushed to remote"
 else
 	# Force push the updated major version tag
-	git push $git_remote "$latest_major_release_tag" --force
+	git push "$git_remote" "$latest_major_release_tag" --force
 	echo -e "Tags: ${BOLD_GREEN}$latest_major_release_tag${OFF} and ${BOLD_GREEN}$new_tag${OFF} pushed to remote"
 fi
 
@@ -176,7 +183,7 @@ fi
 if [ $is_major_release = 'yes' ]; then
 	git branch "releases/$new_major_release_tag" "$new_major_release_tag"
 	echo -e "Branch: ${BOLD_BLUE}releases/$new_major_release_tag${OFF} created from ${BOLD_BLUE}$new_major_release_tag${OFF} tag"
-	git push --set-upstream $git_remote "releases/$new_major_release_tag"
+	git push --set-upstream "$git_remote" "releases/$new_major_release_tag"
 	echo -e "Branch: ${BOLD_GREEN}releases/$new_major_release_tag${OFF} pushed to remote"
 fi
 

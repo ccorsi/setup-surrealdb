@@ -11,13 +11,13 @@ anyone that is interested with contributing to this project.
 3. Create a branch with the issue number, for example
 
    ```bash
-   $ git branch issue_####
+   git branch issue_####
    ```
 
 4. :hammer_and_wrench: Install the dependencies
 
    ```bash
-   $ npm install
+   npm install
    ```
 5. Create test{s} that reproduces your issue within the \_\_tests\_\_ directory
 
@@ -26,20 +26,20 @@ anyone that is interested with contributing to this project.
 7. :white_check_mark: Run the tests
 
    ```bash
-   $ npm test
+   npm test
    ...
    ```
 
 8. :building_construction: Package the TypeScript for distribution
 
    ```bash
-   $ npm run bundle
+   npm run bundle
    ```
 
 9. Format, test, and build the action
 
    ```bash
-   $ npm run all
+   npm run all
    ```
 
    > This step is important! It will run [`rollup`](https://rollupjs.org/) to
