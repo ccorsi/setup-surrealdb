@@ -1,17 +1,17 @@
 {
   "name": "setup-surrealdb",
   "description": "Surrealdb Setup Action",
-  "version": "0.0.1",
-  "author": "",
+  "version": "v0.0.1",
+  "author": "Claudio Corsi",
   "type": "module",
   "private": true,
-  "homepage": "https://github.com/actions/setup-surrealdb",
+  "homepage": "https://github.com/ccorsi/setup-surrealdb",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/setup-surrealdb.git"
+    "url": "git+https://github.com/ccorsi/setup-surrealdb.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/setup-surrealdb/issues"
+    "url": "https://github.com/ccorsi/setup-surrealdb/issues"
   },
   "keywords": [
     "actions",
