@@ -127,12 +127,12 @@ else
 	echo -e -n "Make sure the version field in package.json is ${BOLD_BLUE}$new_tag${OFF}. Yes? [Y/${BOLD_UNDERLINED}n${OFF}] "
 	read -r YN
 
-fi
+	if [[ ! ($YN == "y" || $YN == "Y") ]]; then
+		# Package.json version field is not up to date
+		echo -e "Please update the package.json version to ${BOLD_PURPLE}$new_tag${OFF} and commit your changes"
+		exit 1
+	fi
 
-if [[ ! ($YN == "y" || $YN == "Y") ]]; then
-	# Package.json version field is not up to date
-	echo -e "Please update the package.json version to ${BOLD_PURPLE}$new_tag${OFF} and commit your changes"
-	exit 1
 fi
 
 # 6. Tag a new release
