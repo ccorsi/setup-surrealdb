@@ -54,10 +54,10 @@ function usage {
 	echo "	-v <version_tag,    use the passed version tag, using format vX.X.X"
 	echo "	-c,                 check that the version field is the same within package.json"
 	echo "	-h,                 print this message and exit"
-        echo "This script can be used to create the required release tags and/or the release branch."
-        echo "It can determine if the required release branch was created and will also determine if"
-        echo "the provided version string conforms with the expected semantic version format."
-        echo ""
+	echo "This script can be used to create the required release tags and/or the release branch."
+	echo "It can determine if the required release branch was created and will also determine if"
+	echo "the provided version string conforms with the expected semantic version format."
+	echo ""
 	exit "${status}"
 }
 
@@ -67,24 +67,24 @@ while getopts ":hc:rv" o; do
 	case "${o}" in
 	# git remote identifier is not set to origin by default
 	r)
-                git_remote=${OPTARG}
-                ;;
+		git_remote=${OPTARG}
+		;;
 	# use the passed version for this distribtion
 	v)
-                new_tag=${OPTARG}
+		new_tag=${OPTARG}
 		;;
 	# check that the new tag is also assigned in the package.json file
 	c)
-                check_version=true
+		check_version=true
 		;;
 	# print help and exit with the passed status
 	h)
-                usage 0
+		usage 0
 		;;
 	*)
-                echo invalid option "${OPTARG}"
-                usage 1
-                ;;
+		echo invalid option "${OPTARG}"
+		usage 1
+		;;
 	esac
 done
 

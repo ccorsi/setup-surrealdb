@@ -38,7 +38,7 @@ processing. The retry count is used to determine how many tries the setup
 surrealdb action will make GitHub API calls before exiting the setup surrealdb
 action. The GitHub API call is used to get the version artifact information
 associated to the surrealdb version being requested. The version is necessary to
-be able to correctly format the download url for the requested version of
+be able to correctly format the download URL for the requested version of
 surrealdb. The advantage of setting the retry count becomes useful whenever you
 are going to be performing many concurrent setup surrealdb calls. This would
 then cause your currently executing workflow to incur rate limit response from
