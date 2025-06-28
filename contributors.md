@@ -1,8 +1,8 @@
 # Contributing
 
-While any contribution is welcomed.  There are some steps that I would
-appreciate contributors to follow.  Here is a list of what is expected for
-anyone that is interested with contributing to this project.
+While any contribution is welcomed. There are some steps that I would appreciate
+contributors to follow. Here is a list of what is expected for anyone that is
+interested with contributing to this project.
 
 1. Create an [Issues](https://github.com/ccorsi/setup-surrealdb/issues)
 
@@ -19,6 +19,7 @@ anyone that is interested with contributing to this project.
    ```bash
    npm install
    ```
+
 5. Create test{s} that reproduces your issue within the \_\_tests\_\_ directory
 
 6. Create the fix for the test
@@ -52,6 +53,5 @@ anyone that is interested with contributing to this project.
 All generated pull requests will be reviewed and verified that the test{s} and
 fix is correct.
 
-Lastly, thanks for taking the time to get involved in this project by
-pointing out issues and providing fixes for those issues.
-
+Lastly, thanks for taking the time to get involved in this project by pointing
+out issues and providing fixes for those issues.
