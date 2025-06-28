@@ -63,7 +63,7 @@ function usage {
 
 check_version=false
 
-while getopts ":hc:rv" o; do
+while getopts ":hcr:v:" o; do
 	case "${o}" in
 	# git remote identifier is not set to origin by default
 	r)
@@ -115,7 +115,7 @@ fi
 
 if ${check_version}; then
 	# automatically check that the package.json version field was properly set
-	if grep "\"version\"" package.json | grep "${new_tag}" >/dev/nul; then
+	if grep "\"version\"" package.json | grep -q "${new_tag}"; then
 		# Package.json version field is not up to date
 		echo -e "Please update the package.json version to ${BOLD_PURPLE}$new_tag${OFF} and commit your changes"
 		exit 1
