@@ -35,18 +35,22 @@ jobs:
 
     runs-on: ${{ matrix.runs-on }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'npm'
-      - run: npm ci
-      - run: npm run prepare
+
       - name: Setup Latest SurrealDB Version Test
         id: setup-surrealdb
         uses: ./
+
         # execute the surrealdb command that displays the version of the current surrealdb installation
-      - run: surrealdb --version
+      - name: Execute SurrealDB CLI
+        run: surrealdb --version
 
       - name: Print Output
         id: output
