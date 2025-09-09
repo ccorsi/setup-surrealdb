@@ -66,9 +66,9 @@ jobs:
         with:
           version: latest
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.setup-surrealdb.outputs.surrealdb-version }}"
+      # - name: Print Output
+      #   id: output
+      #   run: echo "${{ steps.setup-surrealdb.outputs.surrealdb-version }}"
 
         # execute the surrealdb command that displays the version of the current surrealdb installation
       - name: Execute SurrealDB CLI
