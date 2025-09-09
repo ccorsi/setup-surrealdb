@@ -1,7 +1,7 @@
 {
   "name": "setup-surrealdb",
   "description": "Surrealdb Setup Action",
-  "version": "v1.0.0",
+  "version": "v1.1.0",
   "author": "Claudio Corsi",
   "type": "module",
   "private": true,

@@ -50,7 +50,7 @@ jobs:
 
         # execute the surrealdb command that displays the version of the current surrealdb installation
       - name: Execute SurrealDB CLI
-        run: surrealdb --version
+        run: surreal --version
 
       - name: Print Output
         id: output

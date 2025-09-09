@@ -132,8 +132,8 @@ export async function setup_surrealdb(): Promise<void> {
         0,
         targetName.lastIndexOf(sep)
       )
-      // rename the downloaded executable 'surrealdb.exe'
-      await rename(targetName, join(surrealdbExtractedFolder, 'surrealdb.exe'))
+      // rename the downloaded executable 'surreal.exe'
+      await rename(targetName, join(surrealdbExtractedFolder, 'surreal.exe'))
     }
 
     // This will be set to the directory that the required SurrealDB version was installed
