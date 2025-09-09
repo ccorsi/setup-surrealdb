@@ -58,6 +58,8 @@ describe('SurrealDB Setup Scheduled Tests', (): void => {
     })
 
     test('SurrealDB Setup latest version test', async (): Promise<void> => {
+      // NOTE: The executeTest does a expect check but the lint application is not smart
+      // enough to see that that is the case here.
       await executeTest(version, filePath)
     })
   })
